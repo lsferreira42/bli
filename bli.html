@@ -1,0 +1,9 @@
+<script src="a.out.js"></script>
+<script>
+	Module.onRuntimeInitialized = async (_) => {
+		const brainfuck = {
+			version: Module.cwrap('main', 'number', ['string']),
+		};
+	console.log(brainfuck("++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++."));
+	};
+</script>
