@@ -5,7 +5,7 @@ all: bli.c
 		$(CC) $(CFLAGS) bli.c -o bli 
 
 clean: bli
-		rm -f bli
+		rm -f bli bli.js bli.wasm
 
 web: bli.html
-		emcc -O3 -s WASM=1 bli.c
+		emcc bli.c -o bli.js -s EXPORTED_FUNCTIONS="['_run_brainfuck']" -s EXTRA_EXPORTED_RUNTIME_METHODS="['ccall', 'cwrap', 'UTF8ToString']"

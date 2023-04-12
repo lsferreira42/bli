@@ -2,12 +2,18 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
+
 char *tape, *ptr;
 
-char brainfuck(char *code, size_t code_len) {
+char *brainfuck(char *code) {
     char output[30000] = {0};
     int output_index = 0;
     int code_index = 0;
+    size_t code_len = strlen(code);
 
     while (code_index < code_len) {
         char c = code[code_index];
@@ -63,12 +69,23 @@ char brainfuck(char *code, size_t code_len) {
             default:
                 break;
         }
+        while (code_index < code_len) {
+        char c = code[code_index];
+
+        switch (c) {
+            // ...
+        }
+        code_index++;
+    }
 
         code_index++;
     }
 
+    char *result = malloc(output_index + 1);
+    memcpy(result, output, output_index);
+    output[output_index] = '\0';
     printf("%s", output);
-    return 0;
+    return result;
 }
 
 void read_code_from_stdin(char **code, size_t *code_len) {
@@ -129,8 +146,27 @@ void show_usage(const char *program_name) {
     exit(EXIT_FAILURE);
 }
 
+#ifdef __EMSCRIPTEN__
+EMSCRIPTEN_KEEPALIVE
+char *run_brainfuck(const char *code_str) {
+    size_t code_len = strlen(code_str);
+    char *code = (char *)code_str;
 
+    tape = calloc(30000, sizeof(char));
+    if (tape == NULL) {
+        fprintf(stderr, "Memory allocation for tape failed\n");
+        exit(EXIT_FAILURE);
+    }
+    ptr = tape;
 
+    char *output = brainfuck(code);
+
+    free(tape);
+
+    return output;
+}
+
+#else
 int main(int argc, char *argv[]) {
     char *code;
     size_t code_len;
@@ -154,11 +190,12 @@ int main(int argc, char *argv[]) {
     }
     ptr = tape;
 
-    brainfuck(code, code_len);
-    printf("\n")
+    char *output = brainfuck(code);
+    printf("%s\n", output);
 
     free(tape);
     free(code);
 
     return 0;
 }
+#endif
