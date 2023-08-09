@@ -155,7 +155,6 @@ int main(int argc, char *argv[]) {
     ptr = tape;
 
     brainfuck(code, code_len);
-    printf("\n")
 
     free(tape);
     free(code);
