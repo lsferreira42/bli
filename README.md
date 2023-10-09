@@ -10,34 +10,84 @@ Because i'm learning about compilers and interpreters
 
 Yes, all you need is GCC and make ( in fact you just need gcc, but typing make is faster )
 
-```shell
-$ make
-gcc -Wall -Werror bli.c -o bli
-$ echo "++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++." | ./bli 
-Hello World!
-```
+## Features
 
-And that's it!!
+- Interpret Brainfuck code from either a file or standard input
+- Step-by-step execution with tape visualization
+- Debug mode for enhanced troubleshooting
+- Web-based interface using WebAssembly (Emscripten)
 
-### Why Brainf*ck?
+## Prerequisites
 
-As much as Brainfuck can be a little bit intimidating at first look, it's a very simple esoteric language , it has a VERY compact instruction set ( 8 to be exact ) and it's functioning is kinda funny.
+- GCC
+- Make
+- Emscripten SDK (for WebAssembly build)
 
+## Installation
 
-### How it works?
+### Native Build
 
-it starting by reading the first parameter passed throug the command line, than it loop through it char by char and do a action on the memory tape.
+To compile the program natively, simply run:
 
-Also, the tape is a 30000 array with 0 on every position, the instruction set move ou update the value of a position on this tape that's later converted to it's equivalent char in the ASCII table, talking about tables, that's one containing all possible brainfuck instructions:
+\```shell
+$ make build
+\```
 
-| Instruction | Utility |
-|------|-------|
-| "." (dot) | print the current cell value    |
-| "+" and "-" | increment or decrement the value of the current cell |
-| "," | read a char from the user and set at the pointer position |
-| "[" and "]" | start and end a loop when the current cell is not zero |
-| "<" and ">" | move the point to the right or left |
+### WebAssembly Build
 
-### Visual explaining: TODO
+To compile the program to WebAssembly using Emscripten, run:
 
-Add a visual run through the hello world example
+\```shell
+$ make web
+\```
+
+## Usage
+
+### Native
+
+To interpret Brainfuck code from standard input:
+
+\```shell
+$ echo "++++[>++++<-]>." | ./bli
+\```
+
+To interpret Brainfuck code from a file:
+
+\```shell
+$ ./bli -c your_file.bf
+\```
+
+For step-by-step execution:
+
+\```shell
+$ ./bli -s -c your_file.bf
+\```
+
+For debug mode:
+
+\```shell
+$ ./bli -d -c your_file.bf
+\```
+
+### Web-based
+
+Open `bli.html` in your web browser. Paste your Brainfuck code into the textarea and click "Run".
+
+## How It Works
+
+The interpreter starts by reading the Brainfuck code provided either as a command-line argument or from standard input. It then iterates through each character, performing actions based on the Brainfuck instruction set.
+
+The memory is represented by a tape, a 30,000-cell array initialized with zeros. The Brainfuck code manipulates this tape to perform computations, which can then be output as ASCII characters.
+
+### Brainfuck Instruction Set
+
+| Instruction | Utility         |
+|-------------|-----------------|
+| `.`         | Output the byte at the data pointer as an ASCII encoded character. |
+| `,`         | Accept one byte of input and store its value in the byte at the data pointer. |
+| `+`         | Increment the byte at the data pointer. |
+| `-`         | Decrement the byte at the data pointer. |
+| `<`         | Decrement the data pointer. |
+| `>`         | Increment the data pointer. |
+| `[`         | Jump past the corresponding `]` if the byte at the data pointer is zero. |
+| `]`         | Jump back to the corresponding `[` if the byte at the data pointer is nonzero. |
