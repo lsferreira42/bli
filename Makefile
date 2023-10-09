@@ -1,11 +1,13 @@
 CC=gcc
 CFLAGS=-Wall -Werror
+EMCC=emcc
+EMFLAGS=-s WASM=1 -s NO_EXIT_RUNTIME=1
 
-all: bli.c
+build: bli.c
 		$(CC) $(CFLAGS) bli.c -o bli 
 
-clean: bli
-		rm -f bli
+web: bli.c
+		$(EMCC) $(EMFLAGS) bli.c -o bli.html
 
-web: bli.html
-		emcc -O3 -s WASM=1 bli.c
+clean:
+		rm -f bli bli.html bli.js bli.wasm
