@@ -29,17 +29,17 @@ Yes, all you need is GCC and make ( in fact you just need gcc, but typing make i
 
 To compile the program natively, simply run:
 
-\```shell
+```shell
 $ make build
-\```
+```
 
 ### WebAssembly Build
 
 To compile the program to WebAssembly using Emscripten, run:
 
-\```shell
+```shell
 $ make web
-\```
+```
 
 ## Usage
 
@@ -47,27 +47,28 @@ $ make web
 
 To interpret Brainfuck code from standard input:
 
-\```shell
-$ echo "++++[>++++<-]>." | ./bli
-\```
+```shell
+$ echo " >++++++++[-<+++++++++>]<.>>+>-[+]++>++>+++[>[->+++<<+++>]<<]>-----.>->
++++..+++.>-.<<+[>[+>+]>>]<--------------.>>.+++.------.--------.>+.>+." | ./bli
+```
 
 To interpret Brainfuck code from a file:
 
-\```shell
+```shell
 $ ./bli -c your_file.bf
-\```
+```
 
 For step-by-step execution:
 
-\```shell
+```shell
 $ ./bli -s -c your_file.bf
-\```
+```
 
 For debug mode:
 
-\```shell
+```shell
 $ ./bli -d -c your_file.bf
-\```
+```
 
 ### Web-based
 
