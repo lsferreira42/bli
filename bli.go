@@ -14,15 +14,6 @@ func printDebug(format string, a ...interface{}) {
 	}
 }
 
-func resizeTape(tape *[]byte, ptr *int) {
-	oldSize := len(*tape)
-	newSize := oldSize * 2
-	newTape := make([]byte, newSize)
-	copy(newTape, *tape)
-	*tape = newTape
-	*ptr += oldSize
-	printDebug("Resized tape to %d bytes\n", newSize)
-}
 
 func executeBFCode(code []byte, tape []byte, stepByStep, debugMode bool) {
 	var ptr int
@@ -32,13 +23,18 @@ func executeBFCode(code []byte, tape []byte, stepByStep, debugMode bool) {
 	for codeIndex := 0; codeIndex < len(code); codeIndex++ {
 		c := code[codeIndex]
 
-		if ptr >= len(tape) {
-			resizeTape(&tape, &ptr)
+		// Ensure tape is long enough
+		for ptr >= len(tape) {
+			tape = append(tape, 0)
 		}
 
 		switch c {
 		case '>':
 			ptr++
+			// Ensure tape is long enough
+			for ptr >= len(tape) {
+				tape = append(tape, 0)
+			}
 		case '<':
 			ptr--
 		case '+':
