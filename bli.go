@@ -14,7 +14,6 @@ func printDebug(format string, a ...interface{}) {
 	}
 }
 
-
 func executeBFCode(code []byte, tape []byte, stepByStep, debugMode bool) {
 	var ptr int
 	output := make([]byte, 300000)
