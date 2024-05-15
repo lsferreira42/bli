@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Brainfuck Playground</title>
+    <script src="brainfuck.js"></script>
+</head>
+<body>
+    <h1>Brainfuck Playground</h1>
+    <textarea id="code" rows="10" cols="50">++++++++++[>+++++++>++++++++++>+++<<<-]>++.>+.+++++++..+++.[-]>++++++++++++.>++++++++++++.</textarea>
+    <br>
+    <label for="input">Input:</label>
+    <input id="input" type="text">
+    <br>
+    <label for="no-interaction">No Interaction:</label>
+    <input id="no-interaction" type="checkbox">
+    <br>
+    <button onclick="runBrainfuck()">Run</button>
+    <br>
+    <h2>Output:</h2>
+    <pre id="output"></pre>
+
+    <script>
+        function runBrainfuck() {
+            const code = document.getElementById('code').value;
+            const input = document.getElementById('input').value;
+            const noInteraction = document.getElementById('no-interaction').checked;
+            const output = executeBrainfuck(code, noInteraction, input);
+            document.getElementById('output').innerText = output;
+        }
+    </script>
+</body>
+</html>

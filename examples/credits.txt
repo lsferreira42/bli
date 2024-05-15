@@ -1,0 +1,16 @@
+ ____  _     ___
+| __ )| |   |_ _|
+|  _ \| |    | |
+| |_) | |___ | |
+|____/|_____|___|
+One of many brainfuck interpreters out there
+
+Some of the code in this repository has been copied from other Brainfuck enthusiasts. I will list them below in no particular order
+
+hanoi.bf: https://copy.sh/brainfuck/
+fib.bf: https://copy.sh/brainfuck/
+mandelbrot.bf: https://copy.sh/brainfuck/
+numwarp.bf: https://copy.sh/brainfuck/
+beers.bf: https://copy.sh/brainfuck/
+pi.bf: https://copy.sh/brainfuck/
+quine.bf: https://copy.sh/brainfuck/
