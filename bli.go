@@ -2,38 +2,57 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"io"
 	"log"
 	"os"
 )
 
+const (
+	initialTapeSize   = 30000
+	tapeExpansionSize = 10000
+)
+
 func debugPrintln(debugMode bool, a ...interface{}) {
 	if debugMode {
-		fmt.Println(a...)
+		log.Println(a...)
 	}
 }
 
-// TODO: implement the debug mode
+func expandTapeIfNeeded(tape []byte, ptr int, debugMode bool) []byte {
+	if ptr >= len(tape) {
+		tape = append(tape, make([]byte, tapeExpansionSize)...)
+		debugPrintln(debugMode, "Tape expanded to", len(tape))
+	}
+	return tape
+}
+
+func readInput(inputReader *bufio.Reader) byte {
+	char, _, err := inputReader.ReadRune()
+	if err != nil {
+		if err == io.EOF {
+			return 0
+		}
+		log.Fatal("Input read error:", err)
+	}
+	return byte(char)
+}
+
 func executeBFCode(code []byte, tape []byte, stepByStep, debugMode bool) {
 	var ptr int
-	output := make([]byte, 0, 30000) // Starts with a capacity of 30000, can grow dynamically
+	output := make([]byte, 0, initialTapeSize)
 	inputReader := bufio.NewReader(os.Stdin)
 
 	for codeIndex := 0; codeIndex < len(code); codeIndex++ {
 		c := code[codeIndex]
-		if ptr >= len(tape) {
-			tape = append(tape, make([]byte, 10000)...)
-		}
+		tape = expandTapeIfNeeded(tape, ptr, debugMode)
 
 		switch c {
 		case '>':
 			ptr++
 			debugPrintln(debugMode, "Pointer moved to", ptr)
-			if ptr >= len(tape) {
-				tape = append(tape, make([]byte, 10000)...)
-				debugPrintln(debugMode, "Tape expanded to", len(tape))
-			}
+			tape = expandTapeIfNeeded(tape, ptr, debugMode)
 		case '<':
 			if ptr > 0 {
 				ptr--
@@ -47,16 +66,7 @@ func executeBFCode(code []byte, tape []byte, stepByStep, debugMode bool) {
 		case '.':
 			output = append(output, tape[ptr])
 		case ',':
-			char, _, err := inputReader.ReadRune()
-			if err != nil {
-				if err == io.EOF {
-					tape[ptr] = 0
-				} else {
-					log.Fatal("Input read error:", err)
-				}
-			} else {
-				tape[ptr] = byte(char)
-			}
+			tape[ptr] = readInput(inputReader)
 		case '[':
 			if tape[ptr] == 0 {
 				balance := 1
@@ -65,9 +75,10 @@ func executeBFCode(code []byte, tape []byte, stepByStep, debugMode bool) {
 					if codeIndex >= len(code) {
 						log.Fatal("Unmatched '[' bracket")
 					}
-					if code[codeIndex] == '[' {
+					switch code[codeIndex] {
+					case '[':
 						balance++
-					} else if code[codeIndex] == ']' {
+					case ']':
 						balance--
 					}
 				}
@@ -80,9 +91,10 @@ func executeBFCode(code []byte, tape []byte, stepByStep, debugMode bool) {
 					if codeIndex < 0 {
 						log.Fatal("Unmatched ']' bracket")
 					}
-					if code[codeIndex] == ']' {
+					switch code[codeIndex] {
+					case ']':
 						balance++
-					} else if code[codeIndex] == '[' {
+					case '[':
 						balance--
 					}
 				}
@@ -103,41 +115,20 @@ func executeBFCode(code []byte, tape []byte, stepByStep, debugMode bool) {
 }
 
 func main() {
-	var stepByStep, debugMode bool
-	var filePath string
+	stepByStep := flag.Bool("s", false, "Enable step-by-step execution")
+	debugMode := flag.Bool("d", false, "Enable debug mode")
+	filePath := flag.String("f", "", "Path to Brainfuck code file")
+	flag.Parse()
 
-	args := os.Args[1:]
-	for i := 0; i < len(args); i++ {
-		switch args[i] {
-		case "-s":
-			stepByStep = true
-		case "-d":
-			debugMode = true
-		case "-f":
-			if i+1 < len(args) {
-				filePath = args[i+1]
-				i++
-			} else {
-				log.Fatal("Expected filename after -f")
-			}
-		default:
-			log.Fatalf("Unknown option %s\n", args[i])
-		}
-	}
-
-	// Read code from file or stdin
-	var code []byte
-	if filePath != "" {
-		data, err := os.ReadFile(filePath)
-		if err != nil {
-			log.Fatalf("Failed to read file: %v", err)
-		}
-		code = data
-	} else {
+	if *filePath == "" {
 		log.Fatal("No file path provided")
 	}
 
-	// Initialize tape with 30,000 bytes as commonly expected by Brainfuck programs
-	tape := make([]byte, 30000)
-	executeBFCode(code, tape, stepByStep, debugMode)
+	code, err := os.ReadFile(*filePath)
+	if err != nil {
+		log.Fatalf("Failed to read file: %v", err)
+	}
+
+	tape := make([]byte, initialTapeSize)
+	executeBFCode(code, tape, *stepByStep, *debugMode)
 }
