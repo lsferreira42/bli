@@ -1,4 +1,11 @@
-# Simple and lazy Brainf*ck interpreter
+```
+ ____  _     ___
+| __ )| |   |_ _|
+|  _ \| |    | |
+| |_) | |___ | |
+|____/|_____|___|
+One of many brainfuck interpreters out there
+```
 
 
 ### Why?
@@ -8,20 +15,20 @@ Because i'm learning about compilers and interpreters
 
 ## Does it work?
 
-Yes, all you need is GCC and make ( in fact you just need gcc, but typing make is faster )
+Yes, all you need is golang and if you need the web build, gopherjs
 
 ## Features
 
 - Interpret Brainfuck code from either a file or standard input
 - Step-by-step execution with tape visualization
 - Debug mode for enhanced troubleshooting
-- Web-based interface using WebAssembly (Emscripten)
+- Web-based interface using WebAssembly (gopherjs)
 
 ## Prerequisites
 
-- GCC
+- Golang
 - Make
-- Emscripten SDK (for WebAssembly build)
+- Gopherjs
 
 ## Installation
 
@@ -55,24 +62,24 @@ $ echo " >++++++++[-<+++++++++>]<.>>+>-[+]++>++>+++[>[->+++<<+++>]<<]>-----.>->
 To interpret Brainfuck code from a file:
 
 ```shell
-$ ./bli -c your_file.bf
+$ ./bli -f your_file.bf
 ```
 
 For step-by-step execution:
 
 ```shell
-$ ./bli -s -c your_file.bf
+$ ./bli -s -f your_file.bf
 ```
 
 For debug mode:
 
 ```shell
-$ ./bli -d -c your_file.bf
+$ ./bli -d -f your_file.bf
 ```
 
 ### Web-based
 
-Open `bli.html` in your web browser. Paste your Brainfuck code into the textarea and click "Run".
+Open `index.html` in your web browser. Paste your Brainfuck code into the textarea and click "Run".
 
 ## How It Works
 
@@ -92,3 +99,6 @@ The memory is represented by a tape, a 30,000-cell array initialized with zeros.
 | `>`         | Increment the data pointer. |
 | `[`         | Jump past the corresponding `]` if the byte at the data pointer is zero. |
 | `]`         | Jump back to the corresponding `[` if the byte at the data pointer is nonzero. |
+
+
+### TODO: talk about the bytecode process

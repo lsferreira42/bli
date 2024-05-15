@@ -3,20 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <title>Brainfuck Playground</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            margin-top: 20px;
+        }
+        textarea {
+            width: 90%;
+            max-width: 1200px;
+            margin: 10px 0;
+            font-family: monospace;
+            resize: vertical;
+        }
+        .options {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+        .options label, .options input {
+            margin: 0 10px;
+        }
+        button {
+            margin-top: 10px;
+        }
+        pre {
+            width: 90%;
+            max-width: 1200px;
+            background: #f0f0f0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .header-art {
+            text-align: center;
+            font-family: monospace;
+            margin-bottom: 20px;
+        }
+    </style>
     <script src="brainfuck.js"></script>
 </head>
 <body>
     <h1>Brainfuck Playground</h1>
-    <textarea id="code" rows="10" cols="50">++++++++++[>+++++++>++++++++++>+++<<<-]>++.>+.+++++++..+++.[-]>++++++++++++.>++++++++++++.</textarea>
-    <br>
-    <label for="input">Input:</label>
-    <input id="input" type="text">
-    <br>
-    <label for="no-interaction">No Interaction:</label>
-    <input id="no-interaction" type="checkbox">
-    <br>
+    <div class="header-art">
+        <pre> ____  _     ___
+| __ )| |   |_ _|
+|  _ \| |    | |
+| |_) | |___ | |
+|____/|_____|___|
+One of many brainfuck interpreters out there</pre>
+    </div>
+    <div class="options">
+        <label for="input">Command line args:</label>
+        <input id="input" type="text">
+        <label for="no-interaction">No Interaction:</label>
+        <input id="no-interaction" type="checkbox">
+    </div>
+    <textarea id="code" rows="10"> >++++++++[-<+++++++++>]<.>>+>-[+]++>++>+++[>[->+++<<+++>]<<]>-----.>->+++..+++.>-.<<+[>[+>+]>>]<--------------.>>.+++.------.--------.>+.>+.
+    </textarea>
     <button onclick="runBrainfuck()">Run</button>
-    <br>
     <h2>Output:</h2>
     <pre id="output"></pre>
 

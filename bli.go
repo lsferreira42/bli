@@ -9,7 +9,6 @@ import (
 	"log"
 	"os"
 
-	//import gopherjs
 	"github.com/gopherjs/gopherjs/js"
 )
 
