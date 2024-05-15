@@ -1,13 +1,21 @@
-CC=gcc
-CFLAGS=-Wall -Werror
-EMCC=emcc
-EMFLAGS=-s WASM=1 -s NO_EXIT_RUNTIME=1
+GOCMD=go
+GOBUILD=$(GOCMD) build
+GOCLEAN=$(GOCMD) clean
+GOTEST=$(GOCMD) test
+GOPHERJSCMD=gopherjs build
+BINARY_NAME=bli
+SOURCE_FILE=bli.go
+WEB_BINARY_NAME=brainfuck.js
 
-build: bli.c
-		$(CC) $(CFLAGS) bli.c -o bli 
+build:
+	$(GOBUILD) -o $(BINARY_NAME) $(SOURCE_FILE)
 
-web: bli.c
-		$(EMCC) $(EMFLAGS) bli.c -o bli.html
+web:
+	$(GOPHERJSCMD) -o $(WEB_BINARY_NAME) $(SOURCE_FILE)
 
 clean:
-		rm -f bli bli.html bli.js bli.wasm
+	$(GOCLEAN)
+	rm -f $(BINARY_NAME) $(WEB_BINARY_NAME)
+
+test:
+	$(GOTEST) -v ./...
