@@ -68,6 +68,10 @@ One of many brainfuck interpreters out there</pre>
     </div>
     <textarea id="code" rows="10"> >++++++++[-<+++++++++>]<.>>+>-[+]++>++>+++[>[->+++<<+++>]<<]>-----.>->+++..+++.>-.<<+[>[+>+]>>]<--------------.>>.+++.------.--------.>+.>+.
     </textarea>
+    <div class="options">
+        <label for="user-input">User Input:</label>
+        <input id="user-input" type="text">
+    </div>
     <button onclick="runBrainfuck()">Run</button>
     <h2>Output:</h2>
     <pre id="output"></pre>
@@ -77,7 +81,8 @@ One of many brainfuck interpreters out there</pre>
             const code = document.getElementById('code').value;
             const input = document.getElementById('input').value;
             const noInteraction = document.getElementById('no-interaction').checked;
-            const output = executeBrainfuck(code, noInteraction, input);
+            const userInput = document.getElementById('user-input').value;
+            const output = executeBrainfuck(code, noInteraction, input + userInput);
             document.getElementById('output').innerText = output;
         }
     </script>
