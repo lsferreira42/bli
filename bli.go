@@ -251,6 +251,18 @@ func executeBFCodeInterpreted(code []byte, tape []byte, stepByStep, debugMode, n
 	bufferedOutput.Flush()
 }
 
+func readStdin() ([]byte, error) {
+	info, err := os.Stdin.Stat()
+	if err != nil {
+		return nil, err
+	}
+	if info.Mode()&os.ModeCharDevice != 0 {
+		return nil, nil
+	}
+	reader := bufio.NewReader(os.Stdin)
+	return io.ReadAll(reader)
+}
+
 func main() {
 	if js.Global != nil {
 		js.Global.Set("executeBrainfuck", func(code string, noInteraction bool, input string) string {
@@ -274,13 +286,20 @@ func main() {
 	args := flag.String("args", "", "Arguments to pass to the Brainfuck program (space-separated)")
 	flag.Parse()
 
-	if *filePath == "" {
-		log.Fatal("No file path provided")
+	code, err := readStdin()
+	if err != nil {
+		log.Fatalf("Failed to read stdin: %v", err)
 	}
 
-	code, err := os.ReadFile(*filePath)
-	if err != nil {
-		log.Fatalf("Failed to read file: %v", err)
+	if code == nil && *filePath == "" {
+		log.Fatal("No input provided via stdin or file path")
+	}
+
+	if code == nil {
+		code, err = os.ReadFile(*filePath)
+		if err != nil {
+			log.Fatalf("Failed to read file: %v", err)
+		}
 	}
 
 	argBytes := []byte(*args)
