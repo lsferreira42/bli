@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  bli-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "9093:9093"
+    restart: unless-stopped
+    container_name: bli-app 

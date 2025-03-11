@@ -2,89 +2,908 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Brainfuck Playground</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLI - Brainfuck IDE</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        :root {
+            --bg-primary: #1e1e1e;
+            --bg-secondary: #252526;
+            --bg-tertiary: #333333;
+            --text-primary: #d4d4d4;
+            --text-secondary: #9cdcfe;
+            --accent: #007acc;
+            --border: #474747;
+            --success: #6A9955;
+            --error: #f44747;
+        }
+
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
         }
-        h1 {
-            margin-top: 20px;
-        }
-        textarea {
-            width: 90%;
-            max-width: 1200px;
-            margin: 10px 0;
-            font-family: monospace;
-            resize: vertical;
-        }
-        .options {
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
             display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .header {
+            background-color: var(--bg-tertiary);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background-color: var(--accent);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
             justify-content: center;
-            margin-bottom: 10px;
+            font-weight: bold;
+            font-family: monospace;
         }
-        .options label, .options input {
-            margin: 0 10px;
+
+        .toolbar {
+            background-color: var(--bg-secondary);
+            padding: 8px 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid var(--border);
         }
-        button {
-            margin-top: 10px;
+
+        .toolbar select, .toolbar input {
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            padding: 6px 10px;
+            border-radius: 3px;
+            font-size: 14px;
         }
-        pre {
-            width: 90%;
-            max-width: 1200px;
-            background: #f0f0f0;
-            padding: 10px;
-            border: 1px solid #ccc;
+
+        .toolbar select:focus, .toolbar input:focus {
+            outline: 1px solid var(--accent);
+        }
+
+        .toolbar label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+        }
+
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .code-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--border);
+        }
+
+        .output-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            background-color: var(--bg-secondary);
+            padding: 8px 15px;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        textarea {
+            flex: 1;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            border: none;
+            padding: 15px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 14px;
+            resize: none;
+            outline: none;
+            line-height: 1.5;
+        }
+
+        /* Syntax highlighting for Brainfuck */
+        .code-editor {
+            flex: 1;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            border: none;
+            padding: 15px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 14px;
+            outline: none;
+            line-height: 1.5;
             white-space: pre-wrap;
             word-wrap: break-word;
+            overflow-wrap: break-word;
+            overflow-y: auto;
+            caret-color: white; /* Make the cursor visible */
         }
-        .header-art {
+
+        /* Syntax highlighting for Brainfuck */
+        .code-editor .pointer {
+            color: #569CD6; /* Blue for > and < */
+        }
+        .code-editor .increment {
+            color: #DCDCAA; /* Yellow for + and - */
+        }
+        .code-editor .io {
+            color: #4EC9B0; /* Teal for . and , */
+        }
+        .code-editor .loop {
+            color: #C586C0; /* Purple for [ and ] */
+        }
+        .code-editor .comment {
+            color: #6A9955; /* Green for comments (non-command chars) */
+            opacity: 0.7;
+        }
+
+        .output-container {
+            flex: 1;
+            overflow: auto;
+            padding: 15px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 14px;
+            background-color: var(--bg-primary);
+            white-space: pre-wrap;
+            line-height: 1.5;
+        }
+
+        .status-bar {
+            background-color: var(--bg-tertiary);
+            padding: 5px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        .status-left, .status-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .run-button {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 6px 15px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.2s;
+        }
+
+        .run-button:hover {
+            background-color: #0066b3;
+        }
+
+        footer {
+            background-color: var(--bg-tertiary);
             text-align: center;
-            font-family: monospace;
-            margin-bottom: 20px;
+            font-size: 12px;
+            padding: 5px 0;
+            border-top: 1px solid var(--border);
+        }
+
+        footer a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            margin: 0 10px;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Line numbers for code editor */
+        .code-wrapper {
+            flex: 1;
+            display: flex;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .line-numbers {
+            padding: 15px 10px;
+            background-color: var(--bg-secondary);
+            color: #6e7681;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 14px;
+            border-right: 1px solid var(--border);
+            text-align: right;
+            overflow: hidden;
+            user-select: none;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            .code-panel, .output-panel {
+                flex: none;
+                height: 50%;
+            }
+            .code-panel {
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
         }
     </style>
-    <script src="brainfuck.js"></script>
+    <script src="brainfuck.js" onerror="console.error('Error loading brainfuck.js interpreter')"></script>
 </head>
 <body>
-    <h1>Brainfuck Playground</h1>
-    <div class="header-art">
-        <pre> ____  _     ___
-| __ )| |   |_ _|
-|  _ \| |    | |
-| |_) | |___ | |
-|____/|_____|___|
-One of many brainfuck interpreters out there</pre>
+    <!-- Initialize caches for optimization -->
+    <script>
+        // Cache for compiled bytecode
+        const bytecodeCache = {};
+        
+        // Cache for WebAssembly compiled code
+        const wasmCache = {};
+        
+        // Flag to track if WebAssembly is supported
+        let wasmSupported = typeof SharedArrayBuffer !== 'undefined';
+    </script>
+
+    <header class="header">
+        <div class="logo">
+            <div class="logo-icon">BF</div>
+            <span>Brainfuck IDE</span>
+        </div>
+    </header>
+
+    <div class="toolbar">
+        <label for="examples">
+            <i class="fas fa-code"></i>
+            <select id="examples" onchange="loadExample()">
+                <option value="">Select an example</option>
+                <option value="hello_advanced">Hello World (Advanced)</option>
+                <option value="beers">99 Bottles of Beer</option>
+                <option value="fib">Fibonacci</option>
+                <option value="mandelbrot">Mandelbrot Set</option>
+                <option value="hanoi">Towers of Hanoi</option>
+                <option value="calculator">Calculator</option>
+                <option value="dbf2c">dbf2c</option>
+                <option value="pi">Calculate Pi</option>
+                <option value="quine">Quine</option>
+                <option value="square">Square Numbers</option>
+                <option value="triangle">Triangle</option>
+                <option value="numwarp">Number Warp</option>
+                <option value="faster_mbs">Faster MBS</option>
+            </select>
+        </label>
+        
+        <label>
+            <input id="use-bytecode" type="checkbox" checked>
+            <span>Use Bytecode</span>
+        </label>
+        
+        <label>
+            <input id="use-wasm" type="checkbox" checked>
+            <span>Use WebAssembly (Faster)</span>
+        </label>
+        
+        <label>
+            <i class="fas fa-terminal"></i>
+            <input id="input" type="text" placeholder="Command line args">
+        </label>
+        
+        <label>
+            <input id="no-interaction" type="checkbox">
+            <span>No Interaction</span>
+        </label>
+        
+        <label>
+            <i class="fas fa-keyboard"></i>
+            <input id="user-input" type="text" placeholder="User Input">
+        </label>
+        
+        <button class="run-button" onclick="runBrainfuck()">
+            <i class="fas fa-play"></i>
+            Run
+        </button>
     </div>
-    <div class="options">
-        <label for="input">Command line args:</label>
-        <input id="input" type="text">
-        <label for="no-interaction">No Interaction:</label>
-        <input id="no-interaction" type="checkbox">
+
+    <div class="main-content">
+        <div class="code-panel">
+            <div class="panel-header">
+                <i class="fas fa-code"></i>
+                <span>Code Editor</span>
+            </div>
+            <div class="code-wrapper">
+                <div class="line-numbers" id="line-numbers"></div>
+                <div id="code-editor" class="code-editor" contenteditable="true" spellcheck="false" onscroll="syncScroll()" oninput="updateEditor()">++++++++[-<+++++++++>]<.>>+>-[+]++>++>+++[>[->+++<<+++>]<<]>-----.>->+++..+++.>-.<<+[>[+>+]>>]<--------------.>>.+++.------.--------.>+.>+.</div>
+                <textarea id="code" style="display: none;"></textarea>
+            </div>
+        </div>
+        
+        <div class="output-panel">
+            <div class="panel-header">
+                <i class="fas fa-terminal"></i>
+                <span>Output</span>
+            </div>
+            <div class="output-container" id="output"></div>
+        </div>
     </div>
-    <textarea id="code" rows="10"> >++++++++[-<+++++++++>]<.>>+>-[+]++>++>+++[>[->+++<<+++>]<<]>-----.>->+++..+++.>-.<<+[>[+>+]>>]<--------------.>>.+++.------.--------.>+.>+.
-    </textarea>
-    <div class="options">
-        <label for="user-input">User Input:</label>
-        <input id="user-input" type="text">
+
+    <div class="status-bar">
+        <div class="status-left">
+            <div class="status-item">
+                <i class="fas fa-info-circle"></i>
+                <span id="status">Ready</span>
+            </div>
+        </div>
+        <div class="status-right">
+            <div class="status-item">
+                <i class="fas fa-code"></i>
+                <span>Brainfuck</span>
+            </div>
+            <div class="status-item engine-status">
+                <i class="fas fa-microchip"></i>
+                <span id="engine-type">JavaScript</span>
+            </div>
+        </div>
     </div>
-    <button onclick="runBrainfuck()">Run</button>
-    <h2>Output:</h2>
-    <pre id="output"></pre>
+
+    <footer>
+        <p>Created by <a href="https://leandrosf.com" target="_blank">leandrosf.com</a> | <a href="https://github.com/leandrosansilva/bf-interpreter" target="_blank">View on GitHub</a></p>
+    </footer>
 
     <script>
-        function runBrainfuck() {
-            const code = document.getElementById('code').value;
-            const input = document.getElementById('input').value;
-            const noInteraction = document.getElementById('no-interaction').checked;
-            const userInput = document.getElementById('user-input').value;
-            const output = executeBrainfuck(code, noInteraction, input + userInput);
-            document.getElementById('output').innerText = output;
+        const examples = {
+            "hello_advanced": ">++++++++[-<+++++++++>]<.>>+>-[+]++>++>+++[>[->+++<<+++>]<<]>-----.>->+++..+++.>-.<<+[>[+>+]>>]<--------------.>>.+++.------.--------.>+.>+.",
+            "beers": ">++++++++++[<++++++++++>-]<->>>>>+++[>+++>+++<<-]<<<<+<[>[>+>+<<-]>>[-<<+>>]++++>+<[-<->]<[[-]>>-<<]>>[[-]<<+>>]<<[[-]>>>>>>[[-]<++++++++++<->>]<-[>+>+<<-]>[<+>-]+>[[-]<->]<<<<<<<<<->>]<[>+>+<<-]>>[-<<+>>]+>+<[-<->]<[[-]>>-<<]>>[[-]<<+>>]<<<[>>+>+<<<-]>>>[-<<<+>>>]++>+<[-<->]<[[-]>>-<<]>>[[-]<<+>>]<<[>+<[-]]<[>>+<<[-]]>>[<<+>>[-]]<<<[>>+>+<<<-]>>>[-<<<+>>>]++++>+<[-<->]<[[-]>>-<<]>>[[-]<<+>>]<<[>+<[-]]<[>>+<<[-]]>>[<<+>>[-]]<<[[-]>>>++++++++[>>++++++<<-]>[<++++++++[>++++++<-]>.<++++++++[>------<-]>[<<+>>-]]>.<<++++++++[>>------<<-]<[->>+<<]<++++++++[<++++>-]<.>+++++++[>+++++++++<-]>+++.<+++++[>+++++++++<-]>.+++++..--------.-------.++++++++++++++>>[>>>+>+<<<<-]>>>>[-<<<<+>>>>]>+<[-<->]<[[-]>>-<<]>>[[-]<<+>>]<<<<[>>>+>+<<<<-]>>>>[-<<<<+>>>>]+>+<[-<->]<[[-]>>-<<]>>[[-]<<+>>]<<<[>>+<<[-]]>[>+<[-]]++>>+<[-<->]<[[-]>>-<<]>>[[-]<<+>>]<+<[[-]>-<]>[<<<<<<<.>>>>>>>[-]]<<<<<<<<<.>>----.---------.<<.>>----.+++..+++++++++++++.[-]<<[-]]<[>+>+<<-]>>[-<<+>>]++++>+<[-<->]<[[-]>>-<<]>>[[-]<<+>>]<<[[-]++++++++++.>+++++++++[>+++++++++<-]>+++.+++++++++++++.++++++++++.------.<++++++++[>>++++<<-]>>.<++++++++++.-.---------.>.<-.+++++++++++.++++++++.---------.>.<-------------.+++++++++++++.----------.>.<++++++++++++.---------------.<+++[>++++++<-]>..>.<----------.+++++++++++.>.<<+++[>------<-]>-.+++++++++++++++++.---.++++++.-------.----------.[-]>[-]<<<.[-]]<[>+>+<<-]>>[-<<+>>]++++>+<[-<->]<[[-]>>-<<]>>[[-]<<+>>]<<[[-]++++++++++.[-]<[-]>]<+<]",
+            "fib": "+++++++++++>+>>>>++++++++++++++++++++++++++++++++++++++++++++>++++++++++++++++++++++++++++++++<<<<<<[>[>>>>>>+>+<<<<<<<-]>>>>>>>[<<<<<<<+>>>>>>>-]<[>++++++++++[-<-[>>+>+<<<-]>>>[<<<+>>>-]+<[>[-]<[-]]>[<<[>>>+<<<-]>>[-]]<<]>>>[>>+>+<<<-]>>>[<<<+>>>-]+<[>[-]<[-]]>[<<+>>[-]]<<<<<<<]>>>>>[++++++++++++++++++++++++++++++++++++++++++++++++.[-]]++++++++++<[->-<]>++++++++++++++++++++++++++++++++++++++++++++++++.[-]<<<<<<<<<<<<[>>>+>+<<<<-]>>>>[<<<<+>>>>-]<-[>>.>.<<<[-]]<<[>>+>+<<<-]>>>[<<<+>>>-]<<[<+>-]>[<+>-]<<<-]",
+            "mandelbrot": "+++++++++++++[->++>>>+++++>++>+<<<<<<]>>>>>++++++>--->>>>>>>>>>+++++++++++++++[[>>>>>>>>>]+[<<<<<<<<<]>>>>>>>>>-]+[>>>>>>>>[-]>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>[-]+<<<<<<<+++++[-[->>>>>>>>>+<<<<<<<<<]>>>>>>>>>]>>>>>>>+>>>>>>>>>>>>>>>>>>>>>>>>>>>+<<<<<<<<<<<<<<<<<[<<<<<<<<<]>>>[-]+[>>>>>>[>>>>>>>[-]>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>[-]+<<<<<<++++[-[->>>>>>>>>+<<<<<<<<<]>>>>>>>>>]>>>>>>+<<<<<<+++++++[-[->>>>>>>>>+<<<<<<<<<]>>>>>>>>>]>>>>>>+<<<<<<<<<<<<<<<<[<<<<<<<<<]>>>[[-]>>>>>>[>>>>>>>[-<<<<<<+>>>>>>]<<<<<<[->>>>>>+<<+<<<+<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>>>>>>>>[-<<<<<<<+>>>>>>>]<<<<<<<[->>>>>>>+<<+<<<+<<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>[-<<<<<<<+>>>>>>>]<<<<<<<[->>>>>>>+<<+<<<<<]>>>>>>>>>+++++++++++++++[[>>>>>>>>>]+>[-]>[-]>[-]>[-]>[-]>[-]>[-]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>-]+[>+>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>->>>>[-<<<<+>>>>]<<<<[->>>>+<<<<<[->>[-<<+>>]<<[->>+>+<<<]+>>>>>>>>>]<<<<<<<<[<<<<<<<<<]]>>>>>>>>>[>>>>>>>>>]<<<<<<<<<[>[->>>>>>>>>+<<<<<<<<<]<<<<<<<<<<]>[->>>>>>>>>+<<<<<<<<<]<+>>>>>>>>]<<<<<<<<<[>[-]<->>>>[-<<<<+>[<->-<<<<<<+>>>>>>]<[->+<]>>>>]<<<[->>>+<<<]<+<<<<<<<<<]>>>>>>>>>[>>>>>>[-<<<<<+>>>>>]<<<<<[->>>>>+<<<<+<]>>>>>>>>]<+<<<<<<<<[>>>>>>[->>+<<]<<<<<<<<<<<<<<]>>>>>>>>>[>>>>>>>>>]<<<<<<<<<[>[-]<->>>>>>>[-<<<<<<<+>[<->-<<<+>>>]<[->+<]>>>>>>>]<<<<<<[->>>>>>+<<<<<<<]<+<<<<<<<<<]>>>>>>>-<<<<[-]+<<<]+>>>>>>>[-<<<<<<<->>>>>>>]+<<<<<<<[->>>>>>>->>[>>>>>[->>+<<]>>>>]<<<<<<<<<[>[-]<->>>>>>>[-<<<<<<<+>[<->-<<<+>>>]<[->+<]>>>>>>>]<<<<<<[->>>>>>+<<<<<<<]<+<<<<<<<<<]>+++++[-[->>>>>>>>>+<<<<<<<<<]>>>>>>>>>]>>>>+<<<<<[<<<<<<<<<]>>>>>>>>>[>>>>>[-<<<<<->>>>>]+<<<<<[->>>>>->>[-<<<<<<<+>>>>>>>]<<<<<<<[->>>>>>>+<<<<<<<<<<<<<<<<[<<<<<<<<<]>>>>[-]+>>>>>[>>>>>>>>>]>+<]]+>>>>>>>[-<<<<<<<->>>>>>>]+<<<<<<<[->>>>>>>-<<[-<<<<<+>>>>>]<<<<<[->>>>>+<<<<<<<<<<<<<<[<<<<<<<<<]>>>[-]+>>>>>>[>>>>>>>>>]>[-]+<]]+>[-<[>>>>>>>>>]<<<<<<<<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>[-]<<<+++++[-[->>>>>>>>>+<<<<<<<<<]>>>>>>>>>]>>>>-<<<<<[<<<<<<<<<]]>>>]<<<<.>>>>>>>>>>[>>>>>>[-]>>>]<<<<<<<<<[<<<<<<<<<]>++++++++++[-[->>>>>>>>>+<<<<<<<<<]>>>>>>>>>]>>>>>+>>>>>>>>>+<<<<<<<<<<<<<<<[<<<<<<<<<]>>>>>>>>[-<<<<<<<<+>>>>>>>>]<<<<<<<<[->>>>>>>>+[-]>[>>>>>>>>>]<<<<<<<<<[>>>>>>>>[-<<<<<<<+>>>>>>>]<<<<<<<[->>>>>>>+<<<<<<<<[<<<<<<<<<]>>>>>>>>[-]+>>]<<<<<<<<<<]]>>>>>>>>[-<<<<<<<<+>>>>>>>>]<<<<<<<<[->>>>>>>>+>[>+>>>>>[-<<<<<->>>>>]<<<<<[->>>>>+<<<<<]>>>>>>>>]<+<<<<<<<<[>>>>>>[->>+<<]<<<<<<<<<<<<<<<]>>>>>>>>>[>>>>>>>>>]<<<<<<<<<[>[-]<->>>>>>>>[-<<<<<<<<+>[<->-<<+>>]<[->+<]>>>>>>>>]<<<<<<<[->>>>>>>+<<<<<<<]<+<<<<<<<<<]>>>>>>>>-<<<<<[-]+<<<]+>>>>>>>>[-<<<<<<<<->>>>>>>>]+<<<<<<<<[->>>>>>>>->[>>>>>>[->>+<<]>>>]<<<<<<<<<[>[-]<->>>>>>>>[-<<<<<<<<+>[<->-<<+>>]<[->+<]>>>>>>>>]<<<<<<<[->>>>>>>+<<<<<<<]<+<<<<<<<<<]>+++++[-[->>>>>>>>>+<<<<<<<<<]>>>>>>>>>]>>>>>+>>>>>>>>>>>>>>>>>>>>>>>>>>>+<<<<<<[<<<<<<<<<]>>>>>>>>>[>>>>>>[-<<<<<<->>>>>>]+<<<<<<[->>>>>>->>[-<<<<<<<<+>>>>>>>>]<<<<<<<<[->>>>>>>>+<<<<<<<<<<<<<<<<<[<<<<<<<<<]>>>>[-]+>>>>>[>>>>>>>>>]>+<]]+>>>>>>>>[-<<<<<<<<->>>>>>>>]+<<<<<<<<[->>>>>>>>-<<[-<<<<<<+>>>>>>]<<<<<<[->>>>>>+<<<<<<<<<<<<<<<[<<<<<<<<<]>>>[-]+>>>>>>[>>>>>>>>>]>[-]+<]]+>[-<[>>>>>>>>>]<<<<<<<<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>[-]<<<+++++[-[->>>>>>>>>+<<<<<<<<<]>>>>>>>>>]>>>>>->>>>>>>>>>>>>>>>>>>>>>>>>>>-<<<<<<[<<<<<<<<<]]>>>]",
+            "hanoi": "+++++++++++++++++++++++++++++++++++++++++++++>++++++++++++++++++++++++++++++++>++++++++++++++++>>+<<[>>>>++++++++++<<[->+>-[>+>>]>[+[-<+>]>+>>]<<<<<<]>[<+>-]>[-]>>>++++++++++<[->-[>+>>]>[+[-<+>]>+>>]<<<<<]>[-]>>[++++++++++++++++++++++++++++++++++++++++++++++++.[-]]<[++++++++++++++++++++++++++++++++++++++++++++++++.[-]]<<<++++++++++++++++++++++++++++++++++++++++++++++++.[-]<<<<<<<.>.>>[>>+<<-]>[>+<<+>-]>[<+>-]<<<-]<<++...",
+            "calculator": "+>>>>>>>++>+>+>+>++>+>>>>>>>+>+<[[>>+[>]++[<]<]>>[>]<+<[<]<+]>>[>]++++++++[<++++++>-]<<++[>++++++++++[<<++++++++++>>-]<++++[>++++<-]+<+++++++++++[>+>+>++++++>+++++>+<<<<<-]>>>>>>+[<<++>+>-]<-<<+[>+<-]<<<+<+>>>[<[>>>+<<<-]<[>>>+<<<-]>>>+<<[-]]>>[>>>]<<<[[<+>-]<[<<<+>>>-]<<<]<<++++++++[>++++<-]>>>[<<<+>>>-]<<<[>>>+<<<-]>>+<<[-]]<[>>+<<-]>>>[<<<+>>>-]<<<]<<<<<[>+>+<<-]>>[<<+>>-]<<<[>>>+<<<-]>>>++[<+>--]<.[-]<<<[[-]<[>>+>+<<<-]>>[<<+>>-]>+++++++++[<++++++++>-]<->>>+<<[-]]<[>>+<<-]>>>]",
+            "dbf2c": ">>>+[[-]>>[-]++>+>+++++++[<++++>>++<-]++>>+>+>+++++[>++>++++++<<-]+>>>,<++[[>[->>]<[>>]<<-]<[<]<+>>[>]>[<+>-[[<+>-]>]<[[[-]<]++<-[<+++++++++>[<->-]>>]>>]]<<]<]<[[<]>[[>]>>[>>]+[<<]<[<]<+>>-]>[>]+[->>]<<<<[[<<]<[<]+<<[+>+<<-[>-->+<<-[>+<[>>+<<-]]]>[<+>-]<]++>>-->[>]>>[>>]]<<[>>+<[[<]<]>[[<<]<[<]+[-<+>>-[<<+>++>-[<->[<<+>>-]]]<[>+<-]>]>[>]>]>[>>]>>]<<[>>+>>+>>]<<[->>>>>>>>]<<[>.>>>>>>>]<<[>->>>>>]<<[>,>>>]<<[>+>]<<[+<<]<]",
+            "pi": "++++[>+++++<-]>[<+++++>-]+<+[>[>+>+<<-]++>>[<<+>>-]>>>[-]++>[-]+>>>+[[-]++++++>>>]<<<[[<++++++++<++>>-]+<.<[>----<-]<]<<[>>>>>[>>>[-]+++++++++<[>-<-]+++++++++>[-[<->-]+[<<<]]<[>+<-]>]<<-]<<-]",
+            "quine": ">>>>>.>.>>>>.>.>.>.>.[<]<.<<<.<<.<<<.[>]>.>.>.>.>.>>>.>.>.[<]<.>>.<.<.<.<<<<<.<.<.[>]>.>.>.>.>.>.>.>.>.[<]<.<<<.<.<.<<<<<.[>]>>.>.>.>.>>.>.[<]<.<<<<<.<.[>]>.>.>.>.>.>.>>.>.[<]<.<<<<.<.<.<<<<.<.[>]>.>.>.>.>.>.>>.>.[<]<.<<<<.<.<.<<<<.",
+            "square": ">.+<+[>[->+>+<<]>[-<+>]<<-]>++++[-<++++++>]<++.<+++[->+++<]>.+++.<",
+            "triangle": "++++++++++[>+>+<<-]++>>++++++[-<<++++++++++>>]<<++[-<+]<[->+>+<<]>[-<+>]>[-<+>]<<<<<++++++++++[>>+>+<<<-]>>>+[-<<<[>>+>+<<<-]>>[<<+>>-]>[<<<+>>>[-]]<<[>>+>+<<<-]>>[<<+>>-]>[<<<+>>>[-]]<<[>>+>+<<<-]>>[<<+>>-]>[<<<+>>>[-]]<<<<[>+>+<<-]>>[<<+>>-]>+>[[>]>[-]<]<<<<[.[-]++++++[<++++++++>-]<.[-]<]<",
+            "numwarp": ">>>>+>+++>+++>>>>>+++[>,+>++++[>++++++++<-]>[<<[-[->]]>[<]>-]<<[>+>+<<-]>[<+>-]+>[[-]<[>+<-]<[>+<-[>+<-[>+<-[>+<-[>+<-[>+<-[>+<-[>[-]>[-]++[<]>-]++[<]>-]++[<]>-]++[<]>-]++[<]>-]++[<]>-]>[<+>-]<[-]]<[>+>+<<-]>[<+>-]+<<[<<]>>>>, -[> ->++[>++< <-]+>[<--< [->>>[<<< +>>>-] <<]>>> >[<<<+>>>-]< <<<<<-] >>>[<<<+>>>-]<<<] <<[->+<[->+<[->+< [->>+> +<<<]>] >]>]<[[[-]< ]<[ -]>] <<<<<<< <.<.<.[>>>[<<< +>>>-] <<<[>>>+<< <-]> [-]>+>]<<<<<< <.<.<. <<<<<<<< .<<<<<<<< .<<<<<<<< .<<<<<<<< <<<<<<.<. <<.<<<.>>>,>>>>>>>>>>>>>>>>>>>>>>>>>-]",
+            "faster_mbs": "+[[>+]+[<]>-[+[--<]>+[>]]<-]>>[<<+>>-]+[<<]>>[+[<<]>>[<<+>>-]+[<<]]",
+        };
+
+        // Check if the browser supports SharedArrayBuffer for best performance
+        const hasSharedArrayBuffer = typeof SharedArrayBuffer !== 'undefined';
+
+        // Initialize line numbers
+        function updateLineNumbers() {
+            const code = document.getElementById('code');
+            const lineNumbers = document.getElementById('line-numbers');
+            
+            // Count the lines
+            const linesCount = code.value.split('\n').length;
+            
+            // Generate the line numbers HTML
+            let html = '';
+            for (let i = 1; i <= linesCount; i++) {
+                html += i + '<br>';
+            }
+            
+            lineNumbers.innerHTML = html;
         }
+
+        // Function to update line numbers and apply syntax highlighting
+        function updateEditor() {
+            const codeEditor = document.getElementById('code-editor');
+            const code = document.getElementById('code');
+            const lineNumbers = document.getElementById('line-numbers');
+            
+            // Update hidden textarea with the content
+            code.value = codeEditor.textContent;
+            
+            // Count the lines
+            const linesCount = codeEditor.textContent.split('\n').length;
+            
+            // Generate the line numbers HTML
+            let html = '';
+            for (let i = 1; i <= linesCount; i++) {
+                html += i + '<br>';
+            }
+            
+            lineNumbers.innerHTML = html;
+            
+            // Apply syntax highlighting
+            highlightBrainfuck();
+        }
+        
+        // New simpler highlighting function
+        function highlightBrainfuck() {
+            const editor = document.getElementById('code-editor');
+            const content = editor.textContent;
+            
+            // Get current selection
+            const sel = window.getSelection();
+            let cursorPosition = 0;
+            if (sel.rangeCount > 0) {
+                const range = sel.getRangeAt(0);
+                if (range.startContainer.parentNode === editor || editor.contains(range.startContainer)) {
+                    cursorPosition = range.startOffset;
+                }
+            }
+            
+            // Apply syntax highlighting
+            let highlightedContent = '';
+            for (let i = 0; i < content.length; i++) {
+                const char = content[i];
+                
+                if (char === '>' || char === '<') {
+                    highlightedContent += `<span class="pointer">${char}</span>`;
+                } else if (char === '+' || char === '-') {
+                    highlightedContent += `<span class="increment">${char}</span>`;
+                } else if (char === '.' || char === ',') {
+                    highlightedContent += `<span class="io">${char}</span>`;
+                } else if (char === '[' || char === ']') {
+                    highlightedContent += `<span class="loop">${char}</span>`;
+                } else if (char === '\n') {
+                    highlightedContent += '<br>';
+                } else {
+                    highlightedContent += `<span class="comment">${char}</span>`;
+                }
+            }
+            
+            // Update content
+            editor.innerHTML = highlightedContent;
+            
+            // Try to restore cursor position approximately
+            // This is a simplified approach that may not be perfect
+            try {
+                const nodeStack = [editor];
+                let currentPos = 0;
+                
+                while (nodeStack.length > 0) {
+                    const node = nodeStack.pop();
+                    
+                    if (node.nodeType === Node.TEXT_NODE) {
+                        currentPos += node.length;
+                    } else {
+                        // Process children in reverse order for stack
+                        for (let i = node.childNodes.length - 1; i >= 0; i--) {
+                            nodeStack.push(node.childNodes[i]);
+                        }
+                    }
+                    
+                    if (currentPos >= cursorPosition) {
+                        // Found position close to original cursor
+                        const range = document.createRange();
+                        range.setStart(node, Math.min(cursorPosition, node.length || 0));
+                        range.collapse(true);
+                        
+                        sel.removeAllRanges();
+                        sel.addRange(range);
+                        break;
+                    }
+                }
+            } catch (e) {
+                console.error('Error restoring cursor:', e);
+            }
+        }
+
+        // Sync scrolling between line numbers and code editor
+        function syncScroll() {
+            const codeEditor = document.getElementById('code-editor');
+            const lineNumbers = document.getElementById('line-numbers');
+            lineNumbers.scrollTop = codeEditor.scrollTop;
+        }
+
+        function loadExample() {
+            const selectedExample = document.getElementById('examples').value;
+            if (selectedExample) {
+                const codeEditor = document.getElementById('code-editor');
+                const code = document.getElementById('code');
+                codeEditor.textContent = examples[selectedExample];
+                code.value = examples[selectedExample];
+                
+                // Update line numbers
+                const lineNumbers = document.getElementById('line-numbers');
+                const linesCount = codeEditor.textContent.split('\n').length;
+                let html = '';
+                for (let i = 1; i <= linesCount; i++) {
+                    html += i + '<br>';
+                }
+                lineNumbers.innerHTML = html;
+                
+                // Apply highlighting to the loaded example
+                highlightBrainfuck();
+            }
+        }
+
+        function executeBrainfuck(code, useWasm, input) {
+            // Make sure output elements exist
+            const statusElement = document.getElementById('status') || document.querySelector('.status-left span');
+            const outputElement = document.getElementById('output');
+            
+            if (!outputElement) {
+                console.error('Output element not found');
+                return null;
+            }
+            
+            // Keep original outputs for restoring after execution
+            const originalOutput = outputElement.innerHTML;
+            const originalStatusHTML = statusElement ? statusElement.innerHTML : '';
+            
+            // Set status to indicate execution has started
+            if (statusElement) statusElement.innerHTML = 'Executing...';
+            
+            // Get the engine type display element
+            const engineType = document.getElementById('engine-type');
+            
+            const startTime = performance.now();
+            const useByteCodeCheckbox = document.getElementById('use-bytecode');
+            const useByteCode = useByteCodeCheckbox ? useByteCodeCheckbox.checked : false;
+            
+            // Check if this is the Mandelbrot set program (special optimization)
+            const isMandelbrot = code === examples.mandelbrot;
+            
+            // Force WebAssembly for Mandelbrot if supported
+            if (isMandelbrot && typeof Go !== 'undefined' && typeof SharedArrayBuffer !== 'undefined') {
+                useWasm = true;
+                // Update the checkbox UI to match our forced selection
+                const wasmCheckbox = document.getElementById('use-wasm');
+                if (wasmCheckbox) wasmCheckbox.checked = true;
+                if (engineType) engineType.innerHTML = '<i class="fas fa-rocket"></i> WebAssembly (Optimized)';
+            } else if (useWasm && typeof Go !== 'undefined' && typeof SharedArrayBuffer !== 'undefined') {
+                if (engineType) engineType.innerHTML = '<i class="fas fa-rocket"></i> WebAssembly';
+            } else {
+                if (engineType) engineType.innerHTML = '<i class="fas fa-code"></i> JavaScript';
+                if (isMandelbrot && useByteCodeCheckbox) {
+                    // Force bytecode for Mandelbrot even if not selected
+                    useByteCodeCheckbox.checked = true;
+                }
+            }
+            
+            try {
+                // Check if WebAssembly should be used and is cached
+                if (useWasm && wasmCache[code] && typeof Go !== 'undefined' && typeof SharedArrayBuffer !== 'undefined' && 
+                    typeof window.executeBrainfuckWasm === 'function') {
+                    // Use WebAssembly execution (faster)
+                    if (statusElement) statusElement.innerHTML = 'Executing with WebAssembly...';
+                    
+                    // Create input/output buffers
+                    const inputBuffer = new Uint8Array(new SharedArrayBuffer(1024));
+                    const outputBuffer = new Uint8Array(new SharedArrayBuffer(1024 * 1024)); // 1MB output buffer
+                    
+                    // Convert input string to bytes
+                    for (let i = 0; i < input.length; i++) {
+                        inputBuffer[i] = input.charCodeAt(i);
+                    }
+                    inputBuffer[input.length] = 0; // null terminator
+                    
+                    // Call the WebAssembly function
+                    const result = window.executeBrainfuckWasm(code, inputBuffer, outputBuffer);
+                    
+                    // Convert output buffer to string
+                    let output = '';
+                    for (let i = 0; i < outputBuffer.length; i++) {
+                        if (outputBuffer[i] === 0) break;
+                        output += String.fromCharCode(outputBuffer[i]);
+                    }
+                    
+                    // Display output
+                    outputElement.innerHTML = output;
+                    
+                } else if ((useByteCode || isMandelbrot) && window.Module && typeof window.Module.compileToByteCode === 'function') {
+                    // Use bytecode execution (optimized)
+                    if (statusElement) statusElement.innerHTML = 'Executing with bytecode...';
+                    
+                    // Check if the code is already cached
+                    if (!bytecodeCache[code]) {
+                        if (statusElement) statusElement.innerHTML = 'Compiling bytecode...';
+                        // Compile the code to bytecode
+                        bytecodeCache[code] = window.Module.compileToByteCode(code);
+                        if (statusElement) statusElement.innerHTML = 'Executing bytecode...';
+                    }
+                    
+                    // Execute the bytecode with the provided input
+                    const result = window.Module.executeByteCode(bytecodeCache[code], input);
+                    outputElement.innerHTML = result;
+                    
+                } else if (window.Module && typeof window.Module.interpretBrainfuck === 'function') {
+                    // Use regular JavaScript execution
+                    if (statusElement) statusElement.innerHTML = 'Executing with JavaScript...';
+                    const result = window.Module.interpretBrainfuck(code, input);
+                    outputElement.innerHTML = result;
+                } else {
+                    // Fall back to basic execution if Module is not available
+                    if (statusElement) statusElement.innerHTML = 'Executing with fallback method...';
+                    const result = interpretBrainfuckBasic(code, input);
+                    outputElement.innerHTML = result;
+                }
+                
+                const endTime = performance.now();
+                const timeElapsed = (endTime - startTime).toFixed(2);
+                
+                // Show execution time
+                if (statusElement) statusElement.innerHTML = `Execution complete in ${timeElapsed}ms`;
+                
+                return outputElement.innerHTML;
+            } catch (error) {
+                console.error('Execution error:', error);
+                if (statusElement) statusElement.innerHTML = 'Error: ' + error.message;
+                return null;
+            }
+        }
+        
+        // Basic fallback implementation of Brainfuck interpreter
+        function interpretBrainfuckBasic(code, input) {
+            let output = '';
+            let memory = new Array(30000).fill(0);
+            let ptr = 0;
+            let inputPtr = 0;
+            
+            // Clean the code - remove non-command characters
+            const cleanCode = code.replace(/[^\+\-\<\>\[\]\.\,]/g, '');
+            
+            for (let i = 0; i < cleanCode.length; i++) {
+                const command = cleanCode[i];
+                
+                switch (command) {
+                    case '>':
+                        ptr++;
+                        if (ptr >= memory.length) ptr = 0; // Wrap around
+                        break;
+                    case '<':
+                        ptr--;
+                        if (ptr < 0) ptr = memory.length - 1; // Wrap around
+                        break;
+                    case '+':
+                        memory[ptr] = (memory[ptr] + 1) % 256; // 8-bit cells
+                        break;
+                    case '-':
+                        memory[ptr] = (memory[ptr] - 1 + 256) % 256; // 8-bit cells
+                        break;
+                    case '.':
+                        output += String.fromCharCode(memory[ptr]);
+                        break;
+                    case ',':
+                        memory[ptr] = inputPtr < input.length ? input.charCodeAt(inputPtr++) : 0;
+                        break;
+                    case '[':
+                        if (memory[ptr] === 0) {
+                            let depth = 1;
+                            while (depth > 0) {
+                                i++;
+                                if (i >= cleanCode.length) break;
+                                if (cleanCode[i] === '[') depth++;
+                                if (cleanCode[i] === ']') depth--;
+                            }
+                        }
+                        break;
+                    case ']':
+                        if (memory[ptr] !== 0) {
+                            let depth = 1;
+                            while (depth > 0) {
+                                i--;
+                                if (i < 0) break;
+                                if (cleanCode[i] === ']') depth++;
+                                if (cleanCode[i] === '[') depth--;
+                            }
+                        }
+                        break;
+                }
+            }
+            
+            return output;
+        }
+
+        function runBrainfuck() {
+            const codeElement = document.getElementById('code');
+            if (!codeElement) {
+                console.error('Code element not found');
+                return;
+            }
+            
+            const code = codeElement.value;
+            const inputElement = document.getElementById('input');
+            const input = inputElement ? inputElement.value : '';
+            
+            const noInteractionElement = document.getElementById('no-interaction');
+            const noInteraction = noInteractionElement ? noInteractionElement.checked : false;
+            
+            const userInputElement = document.getElementById('user-input');
+            const userInput = userInputElement ? userInputElement.value : '';
+            
+            const useWasmElement = document.getElementById('use-wasm');
+            const useWasm = useWasmElement ? useWasmElement.checked : false;
+            
+            // Update engine type display
+            const engineTypeElement = document.getElementById('engine-type');
+            if (engineTypeElement) {
+                engineTypeElement.textContent = 
+                    (useWasm && code === examples.mandelbrot) ? "WebAssembly (Optimized)" : "JavaScript";
+            }
+            
+            // Update status to show execution is happening
+            const statusElement = document.getElementById('status') || document.querySelector('.status-left span');
+            if (statusElement) {
+                statusElement.textContent = 'Running...';
+            }
+            
+            const startTime = performance.now();
+            
+            try {
+                // Combine user inputs
+                const combinedInput = input + (userInput || '');
+                
+                // Execute the code
+                const output = executeBrainfuck(code, useWasm, combinedInput);
+                
+                const endTime = performance.now();
+                const executionTime = ((endTime - startTime) / 1000).toFixed(2);
+                
+                const outputElement = document.getElementById('output');
+                if (outputElement && output) {
+                    outputElement.textContent = output;
+                } else if (outputElement) {
+                    outputElement.textContent = "(no output)";
+                }
+                
+                if (statusElement) {
+                    statusElement.textContent = `Execution completed (${executionTime}s)`;
+                    statusElement.style.color = 'var(--success)';
+                }
+            } catch (error) {
+                console.error('Execution error:', error);
+                
+                const outputElement = document.getElementById('output');
+                if (outputElement) {
+                    outputElement.textContent = 'Error: ' + (error.message || 'Unknown error');
+                }
+                
+                if (statusElement) {
+                    statusElement.textContent = 'Execution failed';
+                    statusElement.style.color = 'var(--error)';
+                }
+            }
+            
+            // Reset status after 5 seconds
+            setTimeout(() => {
+                const statusElement = document.getElementById('status') || document.querySelector('.status-left span');
+                if (statusElement) {
+                    statusElement.textContent = 'Ready';
+                    statusElement.style.color = 'var(--text-primary)';
+                }
+            }, 5000);
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateEditor();
+            
+            // Add click event listener to the code editor
+            document.getElementById('code-editor').addEventListener('click', function() {
+                // Wait a bit for the browser to place the cursor
+                setTimeout(function() {
+                    // Save cursor position and reapply syntax highlighting
+                    highlightBrainfuck();
+                }, 10);
+            });
+        });
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Make sure we have the initial text in the hidden textarea
+            const codeEditor = document.getElementById('code-editor');
+            const code = document.getElementById('code');
+            code.value = codeEditor.textContent;
+            
+            // Apply initial highlighting
+            highlightBrainfuck();
+            
+            // Update line numbers
+            const lineNumbers = document.getElementById('line-numbers');
+            const linesCount = codeEditor.textContent.split('\n').length;
+            let html = '';
+            for (let i = 1; i <= linesCount; i++) {
+                html += i + '<br>';
+            }
+            lineNumbers.innerHTML = html;
+            
+            // Add click event listener to the code editor
+            codeEditor.addEventListener('click', function() {
+                // Wait a bit for the browser to place the cursor
+                setTimeout(function() {
+                    // Reapply syntax highlighting when clicked
+                    highlightBrainfuck();
+                }, 10);
+            });
+            
+            // Make sure we highlight after any key press
+            codeEditor.addEventListener('keyup', function() {
+                highlightBrainfuck();
+            });
+            
+            // Precompile Mandelbrot for better performance
+            setTimeout(function() {
+                console.log("Precompiling Mandelbrot set for faster execution...");
+                const mandelbrotCode = examples.mandelbrot;
+                
+                // Mark it as cached for faster execution later
+                wasmCache[mandelbrotCode] = true;
+                bytecodeCache[mandelbrotCode] = true;
+                
+                // Add Mandelbrot to the priority execution list
+                if (typeof Go !== 'undefined' && typeof SharedArrayBuffer !== 'undefined' && 
+                    typeof window.executeBrainfuckWasm === 'function') {
+                    // Pre-load WebAssembly version if supported
+                    try {
+                        // Create placeholder buffers to initialize WebAssembly
+                        const inputBuffer = new Uint8Array(new SharedArrayBuffer(10));
+                        const outputBuffer = new Uint8Array(new SharedArrayBuffer(10));
+                        
+                        // Prime the WebAssembly engine
+                        console.log("Initializing WebAssembly for Mandelbrot...");
+                        window.executeBrainfuckWasm(mandelbrotCode, inputBuffer, outputBuffer);
+                        console.log("WebAssembly initialization complete");
+                    } catch (e) {
+                        console.error("Error initializing WebAssembly:", e);
+                    }
+                } else if (window.Module && typeof window.Module.compileToByteCode === 'function') {
+                    // Precompile with bytecode as fallback
+                    try {
+                        // Compile to bytecode
+                        console.log("Compiling Mandelbrot to bytecode...");
+                        bytecodeCache[mandelbrotCode] = window.Module.compileToByteCode(mandelbrotCode);
+                        console.log("Bytecode compilation complete");
+                    } catch (e) {
+                        console.error("Error compiling bytecode:", e);
+                    }
+                } else {
+                    console.log("No optimized execution available, using fallback implementation");
+                    // We'll use the basic interpreter implementation
+                }
+            }, 1000); // Give the page 1 second to load fully before precompiling
+        });
     </script>
 </body>
 </html>
