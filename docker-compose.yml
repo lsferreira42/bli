@@ -9,3 +9,9 @@ services:
       - "9093:9093"
     restart: unless-stopped
     container_name: bli-app 
+    networks:
+      - nginx_proxy_network
+
+networks:
+  nginx_proxy_network:
+    external: true
